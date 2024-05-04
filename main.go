@@ -62,7 +62,7 @@ type DuckDuckGoResponse struct {
 	Model   string `json:"model"`
 }
 
-func chatWithDuckDuckGo(c *gin.Context, messages []struct {
+func chatWithDuckDuckGo(c *gin.Context, model string, messages []struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }, stream bool) {
@@ -109,7 +109,7 @@ func chatWithDuckDuckGo(c *gin.Context, messages []struct {
 	vqd4 := resp.Header.Get("x-vqd-4")
 
 	payload := map[string]interface{}{
-		"model":    "gpt-3.5-turbo-0125",
+		"model":    model,
 		"messages": messages,
 	}
 
@@ -178,7 +178,7 @@ func chatWithDuckDuckGo(c *gin.Context, messages []struct {
 						ID:      "chatcmpl-9HOzx2PhnYCLPxQ3Dpa2OKoqR2lgl",
 						Object:  "chat.completion",
 						Created: 1713934697,
-						Model:   "gpt-3.5-turbo-0125",
+						Model:   model,
 						Choices: []OpenAIChoice{
 							{
 								Index:        0,
@@ -263,8 +263,10 @@ func main() {
 			}
 		}
 		// set model to gpt-3.5-turbo-0125
-		req.Model = "gpt-3.5-turbo-0125"
-		chatWithDuckDuckGo(c, req.Messages, req.Stream)
+		if req.Model != "gpt-3.5-turbo-0125" && req.Model != "claude-3-haiku-20240307" {
+			req.Model = "gpt-3.5-turbo-0125"
+		}
+		chatWithDuckDuckGo(c, req.Model, req.Messages, req.Stream)
 	})
 
 	r.GET("/v1/models", func(c *gin.Context) {
@@ -273,6 +275,12 @@ func main() {
 			"data": []gin.H{
 				{
 					"id":       "gpt-3.5-turbo-0125",
+					"object":   "model",
+					"created":  1692901427,
+					"owned_by": "system",
+				},
+				{
+					"id":       "claude-3-haiku-20240307",
 					"object":   "model",
 					"created":  1692901427,
 					"owned_by": "system",
